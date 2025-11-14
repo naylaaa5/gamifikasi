@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoPoint - Gamifikasi Minyak Jelantah</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Lucide Icons for aesthetic UI elements -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styles for aesthetic appeal */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc; /* Light blue-grey background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 420px; /* Standard mobile width */
+            min-height: 100vh;
+            background-color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #065f46 100%); /* Green gradient */
+            color: white;
+            padding: 1.5rem;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        .content-area {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .nav-icon {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-icon.active {
+            color: #059669; /* Active green */
+        }
+        /* Custom scrollbar for content (aesthetic) */
+        .content-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 2px;
+        }
+        /* Hide main app elements for Login screen */
+        .hidden-on-login {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="mainAppContainer">
+    <!-- 1. Halaman Login/Registrasi (Dimuat pertama kali) -->
+    <div id="loginPage" class="content-area p-8 flex flex-col justify-center items-center h-full absolute inset-0 z-20 bg-white">
+        <i data-lucide="leaf" class="w-20 h-20 text-green-600 mb-4 fill-green-200"></i>
+        <h1 class="text-3xl font-bold text-green-700 mb-2">EcoPoint</h1>
+        <p class="text-center text-gray-500 mb-8">Game Daur Ulang, Poin Berlimpah!</p>
+        
+        <input type="text" placeholder="Masukkan Email atau Username" class="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition">
+        <input type="password" placeholder="Password" class="w-full p-3 mb-6 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition">
+        
+        <button class="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition duration-300" onclick="simulateLogin()">
+            Masuk / Daftar
+        </button>
+        
+        <button class="mt-4 w-full py-3 bg-blue-500 text-white font-medium rounded-xl hover:bg-blue-600 transition">
+            <i data-lucide="mail" class="w-5 h-5 inline mr-2"></i> Masuk dengan Google
+        </button>
+
+        <p class="text-xs text-gray-400 mt-6">Simulasi: Tekan tombol Masuk untuk melanjutkan.</p>
+    </div>
+
+
+    <!-- 2. Konten Aplikasi Utama (Disembunyikan saat Login) -->
+
+    <!-- Header: Shows User Info and Level -->
+    <div id="appHeader" class="header-gradient sticky top-0 z-10 hidden-on-login">
+        <div class="flex justify-between items-center">
+            <!-- Profile Info -->
+            <div class="flex items-center">
+                <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-xl font-bold text-green-700 shadow-md">
+                    JD
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-light opacity-80">Halo,</p>
+                    <h1 class="text-lg font-semibold">Joko Daurulang</h1>
+                </div>
+            </div>
+            <!-- Notifications/Settings -->
+            <button class="p-2 rounded-full hover:bg-white/10 transition">
+                <i data-lucide="bell" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <!-- EcoPoint and Level Bar (Dashboard only) -->
+        <div id="dashboardStats" class="mt-4 p-3 bg-white/10 rounded-xl shadow-inner">
+            <div class="flex justify-between items-center text-sm font-medium mb-1">
+                <span class="flex items-center">
+                    <i data-lucide="leaf" class="w-4 h-4 mr-1 text-yellow-300 fill-yellow-300"></i>
+                    EcoPoints: 
+                </span>
+                <span class="text-lg font-bold">1.450</span>
+            </div>
+            <div class="text-xs opacity-90">
+                <p>Level: Silver Recycler (Next: Gold di 2.000 Pts)</p>
+                <div class="w-full bg-white/30 rounded-full h-2 mt-1">
+                    <div class="bg-yellow-400 h-2 rounded-full transition-all duration-500" style="width: 73%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div id="appContent" class="content-area hidden-on-login">
+        <!-- Content will be injected here by showPage() -->
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg p-2 flex justify-around items-center z-10 hidden-on-login">
+        <div id="nav-dashboard" class="nav-icon active flex flex-col items-center p-1" onclick="showPage('dashboard', this)">
+            <i data-lucide="home" class="w-6 h-6"></i>
+            <span class="text-xs mt-0.5">Beranda</span>
+        </div>
+        <div id="nav-setor" class="nav-icon flex flex-col items-center p-1" onclick="showPage('setor', this)">
+            <div class="p-3 bg-green-500 rounded-full text-white -mt-6 shadow-xl hover:bg-green-600 transition duration-300">
+                <i data-lucide="scan" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xs mt-1">Setor</span>
+        </div>
+        <div id="nav-rewards" class="nav-icon flex flex-col items-center p-1" onclick="showPage('rewards', this)">
+            <i data-lucide="gift" class="w-6 h-6"></i>
+            <span class="text-xs mt-0.5">Reward</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    const appContainer = document.getElementById('mainAppContainer');
+    const loginPage = document.getElementById('loginPage');
+    const appHeader = document.getElementById('appHeader');
+    const appContent = document.getElementById('appContent');
+    const appNav = document.querySelector('.sticky.bottom-0');
+    const dashboardStats = document.getElementById('dashboardStats');
+    
+    // --- Page Templates ---
+
+    // 1. Dashboard Content (No change)
+    const dashboardTemplate = `
+        <!-- Impact Tracker -->
+        <div class="bg-green-50 rounded-xl p-4 mb-4 shadow-sm border border-green-200">
+            <h2 class="text-md font-semibold text-green-700 mb-2">Dampak Saya Sejauh Ini</h2>
+            <div class="grid grid-cols-2 gap-3 text-center">
+                <div class="p-3 bg-white rounded-lg shadow-md">
+                    <p class="text-2xl font-bold text-green-600">3.8 L</p>
+                    <p class="text-xs text-gray-500">Minyak Terkumpul</p>
+                </div>
+                <div class="p-3 bg-white rounded-lg shadow-md">
+                    <p class="text-2xl font-bold text-green-600">12</p>
+                    <p class="text-xs text-gray-500">Batang Sabun Dihasilkan</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Snippet -->
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3 flex justify-between items-center">
+                Leaderboard (RT 05)
+                <button class="text-sm text-green-600 font-medium">Lihat Semua</button>
+            </h2>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg shadow-xs border border-yellow-200">
+                    <span class="font-bold text-yellow-700">#1 Anda (Joko D.)</span>
+                    <span class="text-sm font-medium">3.800 Poin</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-xs">
+                    <span class="text-gray-600">#2 Sinta M.</span>
+                    <span class="text-sm text-gray-500">2.900 Poin</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-xs">
+                    <span class="text-gray-600">#3 Budi N.</span>
+                    <span class="text-sm text-gray-500">2.150 Poin</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Mission / Badge Tracker -->
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Tantangan Harian</h2>
+            <div class="p-4 bg-blue-50 rounded-xl shadow-md border border-blue-200">
+                <p class="font-medium text-blue-700">Misi: Setor minimal 500 ml hari ini!</p>
+                <p class="text-sm text-gray-600 mt-1">Hadiah: +50 EcoPoints dan Badge "Setya Hari"</p>
+                <button class="mt-3 w-full py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition">Lihat Lokasi Drop-off</button>
+            </div>
+        </div>
+    `;
+
+    // 2. Setor (Scan & Drop-off) Content (No change)
+    const setorTemplate = `
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Setor Minyak Jelantah</h2>
+        
+        <!-- Scan Section -->
+        <div class="bg-white rounded-xl p-6 mb-6 shadow-2xl border border-green-300 text-center">
+            <div class="w-full h-40 bg-gray-100 rounded-lg border-4 border-dashed border-gray-300 flex items-center justify-center mb-4">
+                <i data-lucide="qrcode" class="w-16 h-16 text-gray-400"></i>
+            </div>
+            <p class="text-gray-600 mb-4">Minta Petugas Drop-off untuk memindai Barcode/QR Minyak Anda.</p>
+            <button class="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition duration-300" onclick="simulateScan()">
+                <i data-lucide="scan-line" class="w-5 h-5 inline mr-2"></i> Pindai Barcode Minyak
+            </button>
+        </div>
+
+        <!-- Map & Drop-off Finder -->
+        <div class="bg-gray-100 rounded-xl p-4 shadow-inner">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <i data-lucide="map-pin" class="w-5 h-5 mr-2 text-red-500"></i> Lokasi Drop-off Terdekat
+            </h3>
+            <div class="w-full h-24 bg-gray-300 rounded-lg flex items-center justify-center text-sm text-gray-600 mb-3">
+                [Peta Google Maps Sederhana]
+            </div>
+            <p class="text-sm font-medium text-gray-700">Bank Sampah RW 07 (300 m)</p>
+            <p class="text-xs text-gray-500">Jam Buka: 08.00 - 15.00</p>
+        </div>
+        
+        <!-- Confirmation Modal Placeholder -->
+        <div id="scanFeedback" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+             <div class="bg-white rounded-2xl p-6 text-center max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-50">
+                <i data-lucide="award" class="w-16 h-16 mx-auto text-yellow-500 mb-4 animate-bounce"></i>
+                <h3 class="text-2xl font-bold text-green-600 mb-2">🎉 Setoran Berhasil!</h3>
+                <p class="text-3xl font-extrabold text-gray-800 mb-4">+300 EcoPoints!</p>
+                <p class="text-sm text-gray-600">Terima kasih telah menyetor 1 Liter minyak jelantah. Anda selangkah lebih dekat ke Level Gold!</p>
+                <button class="mt-5 w-full py-2 bg-green-500 text-white rounded-lg font-medium" onclick="hideModal('scanFeedback')">Lanjut</button>
+            </div>
+        </div>
+    `;
+
+    // 3. Rewards Content (Modified to call redemption function)
+    const rewardsTemplate = `
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Toko Eco-Reward</h2>
+        
+        <!-- Points Display -->
+        <div class="bg-yellow-100 rounded-xl p-4 mb-6 shadow-md border-2 border-yellow-300 text-center">
+            <p class="text-sm text-yellow-800 font-medium">Poin Anda Saat Ini:</p>
+            <span class="flex items-center justify-center text-3xl font-extrabold text-yellow-700 mt-1">
+                <i data-lucide="leaf" class="w-8 h-8 mr-2 fill-yellow-600 text-yellow-600"></i>
+                1.450
+            </span>
+        </div>
+
+        <!-- Reward Categories -->
+        <h3 class="text-xl font-semibold text-gray-800 mb-3">Produk Daur Ulang (Wajib)</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Item 1: Sabun -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-green-100">
+                <div class="h-28 bg-green-200 flex items-center justify-center">
+                    <i data-lucide="soap-box" class="w-12 h-12 text-green-700"></i>
+                </div>
+                <div class="p-3">
+                    <p class="font-bold text-gray-800 text-md">Sabun Cuci Piring (200ml)</p>
+                    <div class="flex items-center mt-2">
+                        <i data-lucide="leaf" class="w-4 h-4 mr-1 text-yellow-600 fill-yellow-600"></i>
+                        <span class="text-lg font-bold text-green-700">500 Poin</span>
+                    </div>
+                    <!-- Added redemption function call -->
+                    <button class="mt-2 w-full py-1.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition" onclick="showRedeemConfirmation('Sabun Cuci Piring (200ml)', 500, 'soap-box')">Tukar</button>
+                </div>
+            </div>
+
+            <!-- Item 2: Lilin -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-green-100">
+                <div class="h-28 bg-yellow-100 flex items-center justify-center">
+                    <i data-lucide="candle" class="w-12 h-12 text-yellow-700"></i>
+                </div>
+                <div class="p-3">
+                    <p class="font-bold text-gray-800 text-md">Lilin Aromaterapi (Kecil)</p>
+                    <div class="flex items-center mt-2">
+                        <i data-lucide="leaf" class="w-4 h-4 mr-1 text-yellow-600 fill-yellow-600"></i>
+                        <span class="text-lg font-bold text-green-700">750 Poin</span>
+                    </div>
+                    <!-- Added redemption function call -->
+                    <button class="mt-2 w-full py-1.5 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition" onclick="showRedeemConfirmation('Lilin Aromaterapi (Kecil)', 750, 'candle')">Tukar</button>
+                </div>
+            </div>
+        </div>
+        
+        <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">Merchandise (Bonus)</h3>
+        <!-- Item 3: Voucher -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 flex mb-4">
+            <div class="w-24 h-24 bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="ticket" class="w-8 h-8 text-gray-500"></i>
+            </div>
+            <div class="p-3 flex-grow">
+                <p class="font-bold text-gray-800">Voucher Diskon Rp 20.000</p>
+                <p class="text-xs text-gray-500 mb-2">Berlaku di warung mitra EcoPoint.</p>
+                 <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <i data-lucide="leaf" class="w-4 h-4 mr-1 text-yellow-600 fill-yellow-600"></i>
+                        <span class="text-md font-bold text-green-700">1.000 Poin</span>
+                    </div>
+                    <!-- Added redemption function call -->
+                    <button class="py-1 px-3 bg-indigo-500 text-white rounded-full text-sm hover:bg-indigo-600 transition" onclick="showRedeemConfirmation('Voucher Diskon Rp 20.000', 1000, 'ticket')">Tukar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 4. Reward Confirmation/Checkout Page
+    const redeemConfirmationTemplate = (item, points, icon) => `
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Konfirmasi Penukaran</h2>
+        
+        <!-- Item Detail -->
+        <div class="bg-white rounded-xl p-5 mb-6 shadow-lg border border-yellow-300">
+            <h3 class="text-xl font-semibold text-gray-800 mb-3">Detail Item</h3>
+            <div class="flex items-center mb-4">
+                <div class="p-3 bg-green-100 rounded-lg">
+                    <i data-lucide="${icon}" class="w-8 h-8 text-green-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-lg font-bold">${item}</p>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <i data-lucide="leaf" class="w-4 h-4 mr-1 text-yellow-600 fill-yellow-600"></i>
+                        Biaya: <span class="font-bold text-green-700 ml-1">${points} Poin</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Points Check -->
+            <div class="bg-yellow-50 p-3 rounded-lg flex justify-between items-center">
+                <p class="text-sm text-gray-600">Poin Anda Saat Ini:</p>
+                <span class="text-lg font-bold text-yellow-700">1.450 Poin</span>
+            </div>
+        </div>
+        
+        <!-- Opsi Pengambilan -->
+        <div class="bg-gray-100 rounded-xl p-5 mb-6 shadow-inner">
+            <h3 class="text-xl font-semibold text-gray-800 mb-3">Opsi Pengambilan</h3>
+            
+            <div class="flex items-center mb-3">
+                <input type="radio" id="pickup" name="deliveryOption" value="pickup" class="w-5 h-5 text-green-600 focus:ring-green-500" checked>
+                <label for="pickup" class="ml-3 font-medium text-gray-700">Ambil di Drop-off (Bank Sampah RW 07)</label>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="radio" id="delivery" name="deliveryOption" value="delivery" class="w-5 h-5 text-green-600 focus:ring-green-500" disabled>
+                <label for="delivery" class="ml-3 font-medium text-gray-700 opacity-50">Kirim ke Alamat (Fitur Premium)</label>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col gap-3">
+            <button class="w-full py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition duration-300" onclick="simulateRedeemSuccess()">
+                TUKAR SEKARANG (-${points} Poin)
+            </button>
+            <button class="w-full py-3 bg-gray-300 text-gray-800 font-medium rounded-xl hover:bg-gray-400 transition" onclick="showPage('rewards')">
+                Batal
+            </button>
+        </div>
+        
+        <!-- Success Modal Placeholder -->
+        <div id="redeemSuccessModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+             <div class="bg-white rounded-2xl p-6 text-center max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-50">
+                <i data-lucide="check-circle" class="w-16 h-16 mx-auto text-green-500 mb-4 animate-bounce fill-green-100"></i>
+                <h3 class="text-2xl font-bold text-green-600 mb-2">Penukaran Berhasil!</h3>
+                <p class="text-sm text-gray-600">Anda berhasil menukarkan ${item}. Silakan ambil di Drop-off Center. Kode: **#12345**.</p>
+                <button class="mt-5 w-full py-2 bg-green-500 text-white rounded-lg font-medium" onclick="hideModal('redeemSuccessModal', 'dashboard')">Kembali ke Beranda</button>
+            </div>
+        </div>
+    `;
+
+    // --- Core Logic ---
+
+    let isAuthenticated = false; // State to track login status
+
+    // Function to simulate user login
+    function simulateLogin() {
+        isAuthenticated = true;
+        // Hide login page
+        loginPage.style.display = 'none';
+        
+        // Show main app elements
+        appHeader.classList.remove('hidden-on-login');
+        appContent.classList.remove('hidden-on-login');
+        appNav.classList.remove('hidden-on-login');
+        
+        // Navigate to the dashboard
+        showPage('dashboard', document.getElementById('nav-dashboard'));
+    }
+    
+    // Function to handle redemption click and show confirmation page
+    function showRedeemConfirmation(item, points, icon) {
+        appContent.innerHTML = redeemConfirmationTemplate(item, points, icon);
+        dashboardStats.style.display = 'none'; // Hide stats when on sub-page
+        lucide.createIcons(); // Re-initialize icons
+        appContent.scrollTop = 0;
+    }
+    
+    // Function to simulate successful redemption and show modal
+    function simulateRedeemSuccess() {
+        const modal = document.getElementById('redeemSuccessModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            console.log("Simulasi Penukaran Berhasil!");
+        }
+    }
+
+
+    // Function to switch between app pages
+    function showPage(pageId, navElement = null) {
+        if (!isAuthenticated && pageId !== 'login') {
+            // Force login if not authenticated
+            return; 
+        }
+
+        let content = '';
+        
+        // Hide/Show Level Stats on Header based on page
+        const isDashboard = pageId === 'dashboard';
+        dashboardStats.style.display = isDashboard ? 'block' : 'none';
+
+        // Set content based on pageId
+        switch (pageId) {
+            case 'dashboard':
+                content = dashboardTemplate;
+                break;
+            case 'setor':
+                content = setorTemplate;
+                break;
+            case 'rewards':
+                content = rewardsTemplate;
+                break;
+            case 'redeem_confirm': // Should be handled by showRedeemConfirmation
+                // This case should ideally not be hit directly by nav bar, but kept for robustness
+                content = `
+                    <div class="text-center p-10">
+                        <p class="text-lg font-semibold">Memuat Konfirmasi Penukaran...</p>
+                        <button class="mt-4 text-green-600" onclick="showPage('rewards')">Kembali ke Reward</button>
+                    </div>
+                `;
+                break;
+            default:
+                content = dashboardTemplate;
+        }
+
+        appContent.innerHTML = content;
+        
+        // Re-initialize Lucide icons for the new content
+        lucide.createIcons();
+
+        // Update active navigation style
+        document.querySelectorAll('.nav-icon').forEach(icon => {
+            icon.classList.remove('active', 'text-green-600');
+            icon.classList.add('text-gray-400');
+        });
+
+        if (navElement && pageId !== 'setor') {
+             // Apply active class only to dashboard and rewards icons
+             navElement.classList.add('active', 'text-green-600');
+             navElement.classList.remove('text-gray-400');
+        }
+        
+        // Scroll to top when changing page
+        appContent.scrollTop = 0;
+    }
+    
+    // Simulation function for scanning a QR code
+    function simulateScan() {
+        const modal = document.getElementById('scanFeedback');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            console.log("Simulasi Scan Berhasil! Poin bertambah.");
+        }
+    }
+    
+    // Function to hide any modal
+    function hideModal(modalId, next='none') {
+         const modal = document.getElementById(modalId);
+         if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        if (next === 'dashboard') {
+            showPage('dashboard', document.getElementById('nav-dashboard'));
+        }
+    }
+
+    // Check if the user is authenticated on initial load
+    if (isAuthenticated) {
+         // Should not happen in this simplified simulation, but for completeness:
+         simulateLogin(); 
+    } else {
+        // Initial setup: only login page is visible
+        appHeader.classList.add('hidden-on-login');
+        appContent.classList.add('hidden-on-login');
+        appNav.classList.add('hidden-on-login');
+        loginPage.style.display = 'flex';
+        appContent.innerHTML = '';
+    }
+
+</script>
